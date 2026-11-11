@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FF Likes Sender (PK)</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background-color: #1e1e1e;
+            padding: 35px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            width: 340px;
+            text-align: center;
+        }
+        h2 {
+            color: #ff9800;
+            margin-bottom: 25px;
+            font-size: 22px;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            border: 1px solid #333;
+            background-color: #2c2c2c;
+            color: #ffffff;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #ff9800;
+            color: #000000;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+        button:hover {
+            background-color: #e68900;
+        }
+        button:disabled {
+            background-color: #777;
+            cursor: not-allowed;
+        }
+        #statusMessage {
+            margin-top: 15px;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>FF Likes Sender (PK)</h2>
+    <input type="text" id="uid" placeholder="Enter Free Fire UID" value="14309009689">
+    <select id="server">
+        <option value="PK">Pakistan (PK)</option>
+        <option value="IND">India (IND)</option>
+        <option value="BD">Bangladesh (BD)</option>
+    </select>
+    <button id="sendBtn" onclick="sendLikes()">Send Likes</button>
+    <div id="statusMessage"></div>
+</div>
+
+<script>
+    async function sendLikes() {
+        const uid = document.getElementById("uid").value.trim();
+        const server = document.getElementById("server").value;
+        const statusDiv = document.getElementById("statusMessage");
+        const btn = document.getElementById("sendBtn");
+
+        if (!uid) {
+            statusDiv.style.color = "#ff4d4d";
+            statusDiv.innerText = "UID dalna zaroori hai!";
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = "Sending...";
+        statusDiv.style.color = "#ff9800";
+        statusDiv.innerText = "API se rabta ho raha hai (agar server soya hua hai toh 50s lag sakte hain)...";
+
+        try {
+            const url = `https://onrender.com{encodeURIComponent(uid)}&server=${encodeURIComponent(server)}&key=MY_FREE_KEY_123`;
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.success) {
+                statusDiv.style.color = "#4caf50";
+                statusDiv.innerText = data.message;
+            } else {
+                statusDiv.style.color = "#ff4d4d";
+                statusDiv.innerText = data.error || "API se error aaya hai.";
+            }
+        } catch (error) {
+            statusDiv.style.color = "#ff4d4d";
+            statusDiv.innerText = "Browser Error: " + error.message + " (CORS enable karna hoga)";
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "Send Likes";
+        }
+    }
+</script>
+
+</body>
+</html>
