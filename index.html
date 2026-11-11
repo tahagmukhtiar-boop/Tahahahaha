@@ -97,24 +97,38 @@
         statusDiv.style.color = "#ff9800";
         statusDiv.innerText = "API se rabta ho raha hai (agar server soya hua hai toh 50s lag sakte hain)...";
 
-        try {
-            const url = `https://onrender.com{encodeURIComponent(uid)}&server=${encodeURIComponent(server)}&key=MY_FREE_KEY_123`;
-            const response = await fetch(url);
-            const data = await response.json();
+        const targetUrl = `https://onrender.com{encodeURIComponent(uid)}&server=${encodeURIComponent(server)}&key=MY_FREE_KEY_123`;
 
-            if (data.success) {
-                statusDiv.style.color = "#4caf50";
-                statusDiv.innerText = data.message;
-            } else {
+        try {
+            // Pehle direct call try karega
+            let response = await fetch(targetUrl);
+            let data = await response.json();
+            showResult(data, statusDiv);
+        } catch (err) {
+            // Agar CORS ya Render sleep ki wajah se direct fail ho toh CORS proxy se guzar kar bhejega
+            try {
+                const proxyUrl = `https://allorigins.win{encodeURIComponent(targetUrl)}`;
+                let proxyRes = await fetch(proxyUrl);
+                let proxyData = await proxyRes.json();
+                let data = JSON.parse(proxyData.contents);
+                showResult(data, statusDiv);
+            } catch (proxyErr) {
                 statusDiv.style.color = "#ff4d4d";
-                statusDiv.innerText = data.error || "API se error aaya hai.";
+                statusDiv.innerText = "Server wake up ho raha hai, 30 second baad dobara button dabayein!";
             }
-        } catch (error) {
-            statusDiv.style.color = "#ff4d4d";
-            statusDiv.innerText = "Browser Error: " + error.message + " (CORS enable karna hoga)";
         } finally {
             btn.disabled = false;
             btn.innerText = "Send Likes";
+        }
+    }
+
+    function showResult(data, statusDiv) {
+        if (data.success) {
+            statusDiv.style.color = "#4caf50";
+            statusDiv.innerText = data.message;
+        } else {
+            statusDiv.style.color = "#ff4d4d";
+            statusDiv.innerText = data.error || "API se error aaya hai.";
         }
     }
 </script>
