@@ -80,7 +80,7 @@
 </div>
 
 <script>
-    async function sendLikes() {
+    function sendLikes() {
         const uid = document.getElementById("uid").value.trim();
         const server = document.getElementById("server").value;
         const statusDiv = document.getElementById("statusMessage");
@@ -95,41 +95,38 @@
         btn.disabled = true;
         btn.innerText = "Sending...";
         statusDiv.style.color = "#ff9800";
-        statusDiv.innerText = "API se rabta ho raha hai (agar server soya hua hai toh 50s lag sakte hain)...";
+        statusDiv.innerText = "API se rabta ho raha hai (pehle baar 50s lag sakte hain)...";
 
-        const targetUrl = `https://onrender.com{encodeURIComponent(uid)}&server=${encodeURIComponent(server)}&key=MY_FREE_KEY_123`;
+        // Unique callback function banate hain (No CORS needed!)
+        const callbackName = "ffCallback_" + Date.now();
+        const script = document.createElement("script");
 
-        try {
-            // Pehle direct call try karega
-            let response = await fetch(targetUrl);
-            let data = await response.json();
-            showResult(data, statusDiv);
-        } catch (err) {
-            // Agar CORS ya Render sleep ki wajah se direct fail ho toh CORS proxy se guzar kar bhejega
-            try {
-                const proxyUrl = `https://allorigins.win{encodeURIComponent(targetUrl)}`;
-                let proxyRes = await fetch(proxyUrl);
-                let proxyData = await proxyRes.json();
-                let data = JSON.parse(proxyData.contents);
-                showResult(data, statusDiv);
-            } catch (proxyErr) {
-                statusDiv.style.color = "#ff4d4d";
-                statusDiv.innerText = "Server wake up ho raha hai, 30 second baad dobara button dabayein!";
-            }
-        } finally {
+        window[callbackName] = function(data) {
+            delete window[callbackName];
+            document.body.removeChild(script);
             btn.disabled = false;
             btn.innerText = "Send Likes";
-        }
-    }
 
-    function showResult(data, statusDiv) {
-        if (data.success) {
-            statusDiv.style.color = "#4caf50";
-            statusDiv.innerText = data.message;
-        } else {
+            if (data.success) {
+                statusDiv.style.color = "#4caf50";
+                statusDiv.innerText = data.message;
+            } else {
+                statusDiv.style.color = "#ff4d4d";
+                statusDiv.innerText = data.error || "API se error aaya hai.";
+            }
+        };
+
+        script.onerror = function() {
+            delete window[callbackName];
+            document.body.removeChild(script);
+            btn.disabled = false;
+            btn.innerText = "Send Likes";
             statusDiv.style.color = "#ff4d4d";
-            statusDiv.innerText = data.error || "API se error aaya hai.";
-        }
+            statusDiv.innerText = "Render server abhi wake up ho raha hai, 30 second baad dobara button dabayein!";
+        };
+
+        script.src = `https://onrender.com{encodeURIComponent(uid)}&server=${encodeURIComponent(server)}&key=MY_FREE_KEY_123&callback=${callbackName}`;
+        document.body.appendChild(script);
     }
 </script>
 
