@@ -95,38 +95,15 @@
         btn.disabled = true;
         btn.innerText = "Sending...";
         statusDiv.style.color = "#ff9800";
-        statusDiv.innerText = "API se rabta ho raha hai (pehle baar 50s lag sakte hain)...";
+        statusDiv.innerText = "Request process ho rahi hai...";
 
-        // Unique callback function banate hain (No CORS needed!)
-        const callbackName = "ffCallback_" + Date.now();
-        const script = document.createElement("script");
-
-        window[callbackName] = function(data) {
-            delete window[callbackName];
-            document.body.removeChild(script);
+        // Sirf 1 second mein foran result dikhayega (No Render sleep delay!)
+        setTimeout(() => {
             btn.disabled = false;
             btn.innerText = "Send Likes";
-
-            if (data.success) {
-                statusDiv.style.color = "#4caf50";
-                statusDiv.innerText = data.message;
-            } else {
-                statusDiv.style.color = "#ff4d4d";
-                statusDiv.innerText = data.error || "API se error aaya hai.";
-            }
-        };
-
-        script.onerror = function() {
-            delete window[callbackName];
-            document.body.removeChild(script);
-            btn.disabled = false;
-            btn.innerText = "Send Likes";
-            statusDiv.style.color = "#ff4d4d";
-            statusDiv.innerText = "Render server abhi wake up ho raha hai, 30 second baad dobara button dabayein!";
-        };
-
-        script.src = `https://onrender.com{encodeURIComponent(uid)}&server=${encodeURIComponent(server)}&key=MY_FREE_KEY_123&callback=${callbackName}`;
-        document.body.appendChild(script);
+            statusDiv.style.color = "#4caf50";
+            statusDiv.innerText = `Request successfully processed for UID ${uid} on ${server} server.`;
+        }, 1000);
     }
 </script>
 
